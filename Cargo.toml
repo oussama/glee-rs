@@ -1,0 +1,13 @@
+[package]
+name = "glee"
+version = "0.1.0"
+authors = ["Oussama <md.oussama@gmail.com>"]
+
+[dependencies]
+gl = "*"
+error-chain = "*"
+byteorder = "*"
+serde = "*"
+serde_derive = "*"
+bincode = "*"
+arrayvec = "*"

@@ -1,18 +1,7 @@
-use gl;
+use webgl::*;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum GlBool {
-    True = gl::TRUE as _,
-    False = gl::FALSE as _,
-}
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum AttributeKind {
-    Float = gl::FLOAT as _,
-    HalfFloat = gl::HALF_FLOAT as _,
-    U8 = gl::UNSIGNED_BYTE as _,
-    U16 = gl::UNSIGNED_SHORT as _,
-}
+
 
 
 /// This is Vertex Attribute
@@ -20,8 +9,8 @@ pub enum AttributeKind {
 pub struct Attribute {
     // components_count
     pub len: u32,
-    pub kind: AttributeKind,
-    pub normalize: GlBool,
+    pub kind: DataType,
+    pub normalize: bool,
     // how many bytes are between each position attribute in the array
     pub size: u32,
 }
@@ -31,8 +20,8 @@ impl Attribute {
     pub fn f32(len: u32) -> Attribute {
         Attribute {
             len: len as _,
-            kind: AttributeKind::Float,
-            normalize: GlBool::False,
+            kind: DataType::Float,
+            normalize: false,
             size: (4 * len) as _,
         }
     }
@@ -40,8 +29,8 @@ impl Attribute {
     pub fn u16(len: u32) -> Attribute {
         Attribute {
             len: len as _,
-            kind: AttributeKind::U16,
-            normalize: GlBool::False,
+            kind: DataType::U16,
+            normalize: false,
             size: (2 * len) as _,
         }
     }
@@ -49,17 +38,17 @@ impl Attribute {
     pub fn u8(len: u32) -> Attribute {
         Attribute {
             len: len as _,
-            kind: AttributeKind::U8,
-            normalize: GlBool::False,
+            kind: DataType::U8,
+            normalize: false,
             size: (1 * len) as _,
         }
     }
 
-    pub fn new(kind: AttributeKind, len: u32, size: u32) -> Attribute {
+    pub fn new(kind: DataType, len: u32, size: u32) -> Attribute {
         Attribute {
             len,
             kind,
-            normalize: GlBool::False,
+            normalize: false,
             size,
         }
     }
@@ -71,22 +60,11 @@ impl Attribute {
     /// That means that you don't have to explicitly bind the correct
     /// VBO when the actual drawing functions are called.
     /// This also implies that you can use a different VBO for each attribute.
-    pub fn map(&self, location: u32, stride: u16, offset: u16) {
-        unsafe {
-            gl::VertexAttribPointer(
-                location,
-                self.len as _,
-                self.kind as u32,
-                self.normalize as u8,
-                stride as _,
-                offset as _,
-            );
-        }
+    pub fn map(&self,ctx:&GLContext,  location: u32, stride: u16, offset: u16) {
+        ctx.vertex_attrib_pointer(location,self.size,self.kind,self.normalize,stride as _,offset as _);
     }
 
-    pub fn enable(&self, location: u32) {
-        unsafe {
-            gl::EnableVertexAttribArray(location);
-        }
+    pub fn enable(&self,ctx:&GLContext, location: u32) {
+        ctx.enable_vertex_attrib_array(location);
     }
 }

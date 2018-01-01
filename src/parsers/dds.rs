@@ -4,6 +4,8 @@ use errors::*;
 use std::io::Cursor;
 use byteorder::{LittleEndian, ReadBytesExt};
 
+use webgl::{TextureCompression,PixelFormat};
+
 pub fn parse(dds: &[u8]) -> Result<TextureData> {
     let mut buf = Cursor::new(dds);
     // ;
@@ -23,7 +25,7 @@ pub fn parse(dds: &[u8]) -> Result<TextureData> {
         width as _,
         height as _,
         dds.to_vec(),
-        Some(TextureCompression::DXT5),
-        TextureFormat::RGBA,
+        Some(TextureCompression::RgbaDxt5),
+        PixelFormat::Rgba,
     ))
 }

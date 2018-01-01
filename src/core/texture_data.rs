@@ -1,19 +1,7 @@
-use gl;
 use errors::*;
 use core::*;
 
-
-#[derive(Debug, Clone, Copy)]
-pub enum TextureCompression {
-    DXT5 = 0x83F3,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum TextureFormat {
-    RGBA = gl::RGBA as _,
-    RED = gl::RED as _,
-    ALPHA = gl::ALPHA as _,
-}
+use webgl::*;
 
 
 #[derive(Debug)]
@@ -21,7 +9,7 @@ pub struct TextureData {
     pub data: Vec<u8>,
     pub size: (u16, u16),
     pub compression: Option<TextureCompression>,
-    pub format: TextureFormat,
+    pub format: PixelFormat,
 }
 
 impl TextureData {
@@ -30,7 +18,7 @@ impl TextureData {
         height: u16,
         data: Vec<u8>,
         compression: Option<TextureCompression>,
-        format: TextureFormat,
+        format: PixelFormat,
     ) -> TextureData {
         TextureData {
             size: (width, height),
@@ -42,73 +30,62 @@ impl TextureData {
 
     #[inline]
     pub fn new_rgba(width: u16, height: u16, data: Vec<u8>) -> TextureData {
-        TextureData::new(width, height, data, None, TextureFormat::RGBA)
+        TextureData::new(width, height, data, None, PixelFormat::Rgba)
     }
 
     #[inline]
     pub fn new_alpha(width: u16, height: u16, data: Vec<u8>) -> TextureData {
-        TextureData::new(width, height, data, None, TextureFormat::ALPHA)
+        TextureData::new(width, height, data, None, PixelFormat::Alpha)
     }
 
-    pub fn upload(&self) -> Result<()> {
+    pub fn upload(&self,ctx:GLContext) -> Result<()> {
         // copy data into buffer memory
-        unsafe {
             //  gl::PixelStorei(gl::UNPACK_SWAP_BYTES,0);
             //  gl::PixelStorei(gl::UNPACK_ALIGNMENT ,1);
-            match self.compression {
-                None => {
-                    gl::TexImage2D(
-                        gl::TEXTURE_2D,
+            if let Some(compression) = self.compression {
+                ctx.compressed_tex_image2d(
+                        TextureBindPoint::Texture2d,
                         0,
-                        self.format as _,
+                        compression,
                         self.size.0 as _,
                         self.size.1 as _,
-                        0,
-                        self.format as _,
-                        gl::UNSIGNED_BYTE,
-                        self.data.as_ptr() as _,
+                        &self.data,
                     );
+            }else {
+                ctx.tex_image2d(
+                    TextureBindPoint::Texture2d,
+                    0,
+                    self.size.0 as _,
+                    self.size.1 as _,
+                    self.format as _,
+                    DataType::U8,
+                    &self.data,
+                );
                     //          gl::GenerateMipmap(gl::TEXTURE_2D);
-                }
-                Some(kind) => {
-                    println!("compressed");
-                    gl::CompressedTexImage2D(
-                        gl::TEXTURE_2D,
-                        0,
-                        kind as _,
-                        self.size.0 as _,
-                        self.size.1 as _,
-                        0,
-                        //gl::RGB,
-                        (self.data.len() - 128) as _, //gl::UNSIGNED_BYTE as _,
-                        &self.data[128] as *const u8 as _,
-                    )
-                }
             }
             // gl::GenerateMipmap(gl::TEXTURE_2D);
-        }
 
         //check_gl_error()?;
         Ok(())
     }
 
-    pub fn upload_at(&self, x: u16, y: u16) -> Result<()> {
-        unsafe {
-            gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
-            gl::TexSubImage2D(
-                gl::TEXTURE_2D,
-                0,
-                x as _,
-                y as _,
-                self.size.0 as _,
-                self.size.1 as _,
-                self.format as _,
-                gl::UNSIGNED_BYTE,
-                self.data.as_ptr() as _,
-            );
+    pub fn upload_at(&self,ctx:GLContext, x: u16, y: u16) -> Result<()> {
+        ctx.pixel_storei(PixelStorageMode::UnpackAlignment,1);
+        ctx.tex_sub_image2d(
+            TextureBindPoint::Texture2d,
+            0,
+            x,
+            y,
+            self.size.0 as _,
+            self.size.1 as _,
+            self.format as _,
+            DataType::U8,
+            &self.data,
+        );
+        //unsafe {
             //gl::GenerateMipmap(gl::TEXTURE_2D);
-        }
-        check_gl_error();
+        //}
+        //check_gl_error();
         Ok(())
     }
 }

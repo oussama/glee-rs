@@ -4,7 +4,7 @@
 extern crate error_chain;
 
 extern crate byteorder;
-extern crate gl;
+extern crate webgl;
 
 extern crate bincode;
 extern crate serde;
@@ -12,6 +12,8 @@ extern crate serde;
 extern crate serde_derive;
 
 extern crate arrayvec;
+
+extern crate glenum;
 
 #[cfg(test)]
 mod tests {
@@ -38,6 +40,8 @@ pub use self::utils::*;
 
 pub mod parsers;
 pub use self::parsers::*;
+
+pub use webgl::*;
 
 
 pub mod errors {
@@ -106,4 +110,20 @@ pub mod utils {
             }
         }
     }
+
+
+    pub trait AsBytes<'a> {
+        fn as_bytes(self) -> &'a[u8];
+    }
+
+    impl<'a,T> AsBytes<'a> for &'a[T] {
+        fn as_bytes(self) -> &'a[u8] {
+            use std::slice;
+            let len = size_of::<T>() * self.len();
+            unsafe {
+                slice::from_raw_parts(self.as_ptr() as _, len)
+            }
+        }
+    }
+
 }

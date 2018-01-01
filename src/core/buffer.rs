@@ -1,59 +1,44 @@
 use core::*;
 use std::marker::PhantomData;
-use gl;
 use std::mem;
 
+use webgl::{BufferKind,DrawMode,GLContext,WebGLBuffer,Primitives};
 
-#[derive(Debug, Clone, Copy)]
-pub enum BufferKind {
-    Vertex = gl::ARRAY_BUFFER as _,
-    Index = gl::ELEMENT_ARRAY_BUFFER as _,
-}
+use std::rc::Rc;
 
-#[derive(Debug, Clone, Copy)]
-pub enum DrawMode {
-    Static = 35044,
-    Dynamic = 35048,
-    Stream = 35040,
-}
+use utils::AsBytes;
 
 
 #[derive(Debug)]
-pub struct GlBuffer<T: TypeInto<BufferKind>>(u32, PhantomData<T>);
+pub struct GLBuffer<T: TypeInto<BufferKind>>{
+    ctx:Rc<GLContext>,
+    handle:WebGLBuffer,
+    p:PhantomData<T>,
+}
 
 
-impl<T: TypeInto<BufferKind>> GlBuffer<T>
+impl<T: TypeInto<BufferKind>> GLBuffer<T>
 where
     T: TypeInto<BufferKind>,
 {
-    pub fn new() -> GlBuffer<T> {
-        let mut buffer = GlBuffer(0, PhantomData);
-        unsafe {
-            gl::GenBuffers(1, &mut buffer.0);
-        }
-        buffer
+    pub fn new(ctx:&Rc<GLContext>) -> GLBuffer<T> {
+        let handle = ctx.create_buffer();
+        GLBuffer{ctx:ctx.clone(),handle,p:PhantomData}
     }
 
     pub fn bind(&mut self) {
-        unsafe {
-            gl::BindBuffer(T::into() as _, self.0);
-        }
+        self.ctx.bind_buffer(T::into() as _, &self.handle);
     }
 
     /// copy data into buffer memory
     /// requires a bound buffer
-    pub fn upload<V>(&mut self, data: &Vec<V>, draw: DrawMode) {
-        let size = data.len() * mem::size_of::<V>();
-        //println!("Buffer::upload.size {}",size);
-        unsafe {
-            gl::BufferData(
+    pub fn upload<V>(&mut self, data: &[V], draw: DrawMode) {
+        self.ctx.buffer_data(
                 T::into() as _,
-                size as _,
-                data.as_ptr() as *const _,
-                draw as u32,
+                &data.as_bytes(),
+                draw,
             );
             check_gl_error().expect("buffer/upload");
-        }
     }
 }
 
@@ -69,43 +54,37 @@ pub trait TypeInto<T> {
 
 impl TypeInto<BufferKind> for VertexBufferKind {
     fn into() -> BufferKind {
-        BufferKind::Vertex
+        BufferKind::Array
     }
 }
 
 impl TypeInto<BufferKind> for IndexBufferKind {
     fn into() -> BufferKind {
-        BufferKind::Index
+        BufferKind::ElementArray
     }
 }
 
 
-pub type GlVertexBuffer = GlBuffer<VertexBufferKind>;
-pub type GlIndexBuffer = GlBuffer<IndexBufferKind>;
+pub type GLVertexBuffer = GLBuffer<VertexBufferKind>;
+pub type GLIndexBuffer = GLBuffer<IndexBufferKind>;
 
-impl GlIndexBuffer {
+impl GLIndexBuffer {
     pub fn draw<T: AsGlEnum>(&self, len: usize) {
-        unsafe {
-            gl::DrawElements(gl::TRIANGLES, len as _, T::as_gl_enum(), 0 as _);
-        }
+        self.ctx.draw_elements(Primitives::Triangles,len,T::as_gl_enum(),0);
     }
 }
 
-impl GlVertexBuffer {
-    pub fn draw(&self, len: u32) {
-        unsafe {
-            gl::DrawArrays(gl::TRIANGLES, 0, len as _);
-        }
+impl GLVertexBuffer {
+    pub fn draw(&self, len: usize) {
+        self.ctx.draw_arrays(Primitives::Triangles,len);
     }
 }
 
-impl<T: TypeInto<BufferKind>> Drop for GlBuffer<T>
+impl<T: TypeInto<BufferKind>> Drop for GLBuffer<T>
 where
     T: TypeInto<BufferKind>,
 {
     fn drop(&mut self) {
-        unsafe {
-            gl::DeleteBuffers(1, &self.0);
-        }
+      //  self.delete_buffer(self.0);
     }
 }

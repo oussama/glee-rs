@@ -1,3 +1,4 @@
+use webgl::GLContext;
 use core::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -63,14 +64,14 @@ impl VertexFormat {
         (v as usize)
     }
 
-    pub fn map(&mut self, program: &GlProgram) {
+    pub fn map(&mut self,ctx:GLContext, program: &GLProgram) {
         let stride = self.stride();
         let mut offset = 0;
 
         for attribute in &self.attributes {
-            if let Ok(location) = program.attribute_location(&attribute.name) {
-                attribute.attribute.map(location, stride as _, offset);
-                attribute.attribute.enable(location);
+            if let Some(location) = program.attribute_location(&attribute.name) {
+                attribute.attribute.map(&ctx,location, stride as _, offset);
+                attribute.attribute.enable(&ctx,location);
             } else {
                 // println!("Attribute not found {}",attribute.name);
             }

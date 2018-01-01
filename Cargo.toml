@@ -4,7 +4,8 @@ version = "0.1.0"
 authors = ["Oussama <md.oussama@gmail.com>"]
 
 [dependencies]
-gl = "*"
+glenum = "*"
+webgl = { path = "C:/Users/oussa/work/webgl-rs"}
 error-chain = "*"
 byteorder = "*"
 serde = "*"

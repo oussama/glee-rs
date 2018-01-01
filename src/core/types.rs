@@ -1,18 +1,17 @@
-use gl;
-use gl::types::GLenum;
+use webgl::*;
 
 pub trait AsGlEnum {
-    fn as_gl_enum() -> GLenum;
+    fn as_gl_enum() -> DataType;
 }
 
 impl AsGlEnum for u32 {
-    fn as_gl_enum() -> GLenum {
-        gl::UNSIGNED_INT
+    fn as_gl_enum() -> DataType {
+        DataType::U32
     }
 }
 
 impl AsGlEnum for u16 {
-    fn as_gl_enum() -> GLenum {
-        gl::UNSIGNED_SHORT
+    fn as_gl_enum() -> DataType {
+        DataType::U16
     }
 }

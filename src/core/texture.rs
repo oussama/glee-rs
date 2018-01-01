@@ -1,34 +1,40 @@
-use gl;
 use core::*;
+use webgl::*;
+use std::rc::Rc;
+use std::ops::Deref;
 
 #[derive(Debug)]
-pub struct GlTexture(u32);
+pub struct GLTexture {
+    ctx:Rc<GLContext>,
+    handle:WebGLTexture
+}
 
-impl GlTexture {
-    pub fn new() -> GlTexture {
-        let mut handle = GlTexture(0);
-        unsafe {
-            gl::GenTextures(1, &mut handle.0);
+impl GLTexture {
+    pub fn new(ctx:&Rc<GLContext>) -> GLTexture {
+        GLTexture {
+            ctx:ctx.clone(),
+            handle: ctx.create_texture()
         }
-        handle
-    }
-
-    pub fn id(&self) -> u32 {
-        self.0
     }
 
     pub fn bind(&self) {
-        unsafe {
-            gl::ActiveTexture(gl::TEXTURE0);
-            gl::BindTexture(gl::TEXTURE_2D, self.0);
-        }
-        check_gl_error().expect("texture/bind");
+        self.ctx.bind_texture(&self.handle);
     }
 
     pub fn unbind(&self) {
-        println!("tex.unbind");
-        unsafe {
-            gl::BindTexture(gl::TEXTURE_2D, 0);
-        }
+        self.ctx.unbind_texture();
+    }
+}
+
+impl Drop for GLTexture {
+    fn drop(&mut self){
+        self.ctx.delete_texture(&self.handle);
+    }
+}
+
+impl Deref for GLTexture {
+    type Target = WebGLTexture;
+    fn deref(&self) -> &Self::Target {
+        &self.handle
     }
 }

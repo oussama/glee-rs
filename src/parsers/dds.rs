@@ -21,10 +21,16 @@ pub fn parse(dds: &[u8]) -> Result<TextureData> {
     let height = buf.read_u32::<LittleEndian>()
         .chain_err(|| "little endian read failed")?;
 
+    let mut offset = 0;
+    #[cfg(target_arch = "wasm32")]
+    {
+        offset = 32*4; // dds header size
+    };
+
     Ok(TextureData::new(
         width as _,
         height as _,
-        dds.to_vec(),
+        dds[offset..].to_vec(),
         Some(TextureCompression::RgbaDxt5),
         PixelFormat::Rgba,
     ))

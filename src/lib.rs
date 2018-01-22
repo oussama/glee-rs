@@ -13,8 +13,6 @@ extern crate serde_derive;
 
 extern crate arrayvec;
 
-extern crate glenum;
-
 #[cfg(test)]
 mod tests {
     #[test]

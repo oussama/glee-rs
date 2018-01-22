@@ -2,7 +2,7 @@ use webgl::*;
 use std::rc::Rc;
 
 #[derive(Debug)]
-pub struct GLVertexArray(WebGLVertexArray);
+pub struct GLVertexArray(i32);
 
 
 /// commonly referred to as VAO
@@ -10,7 +10,7 @@ pub struct GLVertexArray(WebGLVertexArray);
 impl GLVertexArray {
     
     pub fn new(ctx:&GLContext) -> GLVertexArray {
-        GLVertexArray(ctx.create_vertex_array())
+        GLVertexArray(0)//ctx.create_vertex_array())
     }
 
     pub fn bind(&self) {

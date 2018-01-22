@@ -38,7 +38,7 @@ impl TextureData {
         TextureData::new(width, height, data, None, PixelFormat::Alpha)
     }
 
-    pub fn upload(&self,ctx:GLContext) -> Result<()> {
+    pub fn upload(&self,ctx:&GLContext) -> Result<()> {
         // copy data into buffer memory
             //  gl::PixelStorei(gl::UNPACK_SWAP_BYTES,0);
             //  gl::PixelStorei(gl::UNPACK_ALIGNMENT ,1);
@@ -69,7 +69,7 @@ impl TextureData {
         Ok(())
     }
 
-    pub fn upload_at(&self,ctx:GLContext, x: u16, y: u16) -> Result<()> {
+    pub fn upload_at(&self,ctx:&GLContext, x: u16, y: u16) -> Result<()> {
         ctx.pixel_storei(PixelStorageMode::UnpackAlignment,1);
         ctx.tex_sub_image2d(
             TextureBindPoint::Texture2d,

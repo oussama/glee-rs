@@ -40,6 +40,15 @@ where
             );
             check_gl_error().expect("buffer/upload");
     }
+
+    pub fn update<V>(&mut self,offset:u32, data: &[V]) {
+        self.ctx.buffer_sub_data(
+                T::into() as _,
+                offset,
+                &data.as_bytes(),
+            );
+            check_gl_error().expect("buffer/upload");
+    }
 }
 
 #[derive(Debug)]

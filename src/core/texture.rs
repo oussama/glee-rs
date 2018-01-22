@@ -3,7 +3,7 @@ use webgl::*;
 use std::rc::Rc;
 use std::ops::Deref;
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct GLTexture {
     ctx:Rc<GLContext>,
     handle:WebGLTexture

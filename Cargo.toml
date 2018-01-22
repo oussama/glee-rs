@@ -1,11 +1,10 @@
 [package]
 name = "glee"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Oussama <md.oussama@gmail.com>"]
 
 [dependencies]
-glenum = "*"
-webgl = { path = "C:/Users/oussa/work/webgl-rs"}
+webgl = { path = "../webgl"}
 error-chain = "*"
 byteorder = "*"
 serde = "*"

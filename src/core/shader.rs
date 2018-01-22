@@ -40,7 +40,7 @@ impl GLShaderSource {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct GLProgram {
     pub ctx:Rc<GLContext>,
     handle:WebGLProgram,
@@ -78,12 +78,12 @@ impl GLProgram {
         self.ctx.get_attrib_location(&self,name)
     }
 
-    pub fn uniform_location(&self, name: &str) -> Option<u32> {
+    pub fn uniform_location(&self, name: &str) -> Option<WebGLUniformLocation> {
         self.ctx.get_uniform_location(&self,name)
     }
 
     pub fn parameter(&self, pname: ShaderParameter) -> i32 {
-        self.ctx.get_program_iv(&self,pname)
+        self.ctx.get_program_parameter(&self,pname)
     }
 
     pub fn active_attributes_count(&self,) -> usize {
@@ -118,6 +118,7 @@ impl GLProgram {
 
     pub fn attributes(&self) -> Vec<WebGLActiveInfo> {
         let count = self.active_attributes_count();
+        println!("attributes count {}",count );
         let mut attributes = Vec::with_capacity(count);
         for i in 0..count {
             attributes.push(self.attribute_at(i as u32));
@@ -127,6 +128,7 @@ impl GLProgram {
 
     pub fn uniforms(&self) -> Vec<WebGLActiveInfo> {
         let count = self.active_uniforms_count();
+        println!("uniforms count {}",count );
         let mut uniforms = Vec::with_capacity(count);
         for i in 0..count {
             uniforms.push(self.uniform_at(i as u32));

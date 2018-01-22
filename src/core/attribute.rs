@@ -7,46 +7,55 @@ use webgl::*;
 /// This is Vertex Attribute
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Attribute {
-    // components_count
-    pub len: u32,
+    
     pub kind: DataType,
     pub normalize: bool,
-    // how many bytes are between each position attribute in the array
-    pub size: u32,
+    // components_count
+    pub size: AttributeSize,
+    
 }
 
 /// Vertex Attribute Implementation
 impl Attribute {
-    pub fn f32(len: u32) -> Attribute {
+
+    pub fn len(&self) -> usize{
+        match self.kind {
+            DataType::Float | DataType::I32 | DataType::U32 => 4 * self.size as usize,
+            DataType::I16 | DataType::U16 => 2 * self.size as usize,
+            DataType::I8 | DataType::U8 => self.size as usize,
+        }
+    }
+
+    pub fn f32(size:AttributeSize) -> Attribute {
         Attribute {
-            len: len as _,
+           // len: len as _,
             kind: DataType::Float,
             normalize: false,
-            size: (4 * len) as _,
+            size,
         }
     }
 
-    pub fn u16(len: u32) -> Attribute {
+    pub fn u16(size: AttributeSize) -> Attribute {
         Attribute {
-            len: len as _,
+          //  len: len as _,
             kind: DataType::U16,
             normalize: false,
-            size: (2 * len) as _,
+            size,
         }
     }
 
-    pub fn u8(len: u32) -> Attribute {
+    pub fn u8(size: AttributeSize) -> Attribute {
         Attribute {
-            len: len as _,
+            //len: len as _,
             kind: DataType::U8,
             normalize: false,
-            size: (1 * len) as _,
+            size,
         }
     }
 
-    pub fn new(kind: DataType, len: u32, size: u32) -> Attribute {
+    pub fn new(kind: DataType, size: AttributeSize) -> Attribute {
         Attribute {
-            len,
+            //len,
             kind,
             normalize: false,
             size,
@@ -62,6 +71,7 @@ impl Attribute {
     /// This also implies that you can use a different VBO for each attribute.
     pub fn map(&self,ctx:&GLContext,  location: u32, stride: u16, offset: u16) {
         ctx.vertex_attrib_pointer(location,self.size,self.kind,self.normalize,stride as _,offset as _);
+        //ctx.log(format!("location {} stride {} offset {}", location,stride,offset ));
     }
 
     pub fn enable(&self,ctx:&GLContext, location: u32) {

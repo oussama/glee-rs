@@ -19,7 +19,7 @@ impl TextureConfig {
         }
     }
 
-    pub fn apply(&self,ctx:GLContext) -> Result<()> {
+    pub fn apply(&self,ctx:&GLContext) -> Result<()> {
 
         ctx.tex_parameteri(TextureParameter::TextureWrapS, self.wrap.0 as _);
         ctx.tex_parameteri(TextureParameter::TextureWrapT, self.wrap.1 as _);

@@ -1,5 +1,7 @@
-use webgl::GLContext;
+use webgl::AttributeSize;
 use core::*;
+use std::rc::Rc;
+use shader_program::ShaderProgram;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VertexAttribute {
@@ -25,57 +27,65 @@ impl Deref for VertexAttribute {
 }
 
 impl VertexAttribute {
-    pub fn f32<T: Into<String>>(name: T, len: u32) -> VertexAttribute {
+    pub fn f32<T: Into<String>>(name: T, size: AttributeSize) -> VertexAttribute {
         VertexAttribute {
             name: name.into(),
-            attribute: Attribute::f32(len),
+            attribute: Attribute::f32(size),
         }
     }
 
-    pub fn u16<T: Into<String>>(name: T, len: u32) -> VertexAttribute {
+    pub fn u16<T: Into<String>>(name: T, size: AttributeSize) -> VertexAttribute {
         VertexAttribute {
             name: name.into(),
-            attribute: Attribute::u16(len),
+            attribute: Attribute::u16(size),
         }
     }
 
-    pub fn u8<T: Into<String>>(name: T, len: u32) -> VertexAttribute {
+    pub fn u8<T: Into<String>>(name: T, size: AttributeSize) -> VertexAttribute {
         VertexAttribute {
             name: name.into(),
-            attribute: Attribute::u8(len),
+            attribute: Attribute::u8(size),
         }
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default,Debug, Clone, Serialize, Deserialize)]
 pub struct VertexFormat {
     pub attributes: Vec<VertexAttribute>,
+    pub mapped:bool,
+
 }
 
 impl VertexFormat {
     pub fn new(attributes: Vec<VertexAttribute>) -> VertexFormat {
-        VertexFormat { attributes }
+        VertexFormat { attributes, mapped:false }
     }
 }
 
 impl VertexFormat {
+
     pub fn stride(&self) -> usize {
-        let v: u32 = self.attributes.iter().map(|it| it.attribute.size).sum();
-        (v as usize)
+        self.attributes.iter().map(|it| it.attribute.len() ).sum()
     }
 
-    pub fn map(&mut self,ctx:GLContext, program: &GLProgram) {
+    pub fn map(&mut self,p: &Rc<ShaderProgram>) {
+        if self.mapped {
+            return;
+        }
+        let program = &p.program; 
         let stride = self.stride();
         let mut offset = 0;
 
         for attribute in &self.attributes {
             if let Some(location) = program.attribute_location(&attribute.name) {
-                attribute.attribute.map(&ctx,location, stride as _, offset);
-                attribute.attribute.enable(&ctx,location);
+                attribute.attribute.map(&program.ctx,location, stride as _, offset as _);
+                attribute.attribute.enable(&program.ctx,location);
             } else {
-                // println!("Attribute not found {}",attribute.name);
+                println!("Attribute not found {}",attribute.name);
             }
-            offset += attribute.attribute.size as u16;
+            offset += attribute.attribute.len();
         }
+
+        self.mapped = true;
     }
 }

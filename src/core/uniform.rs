@@ -20,6 +20,13 @@ impl<'a> SetUniform<&'a [[f32; 4]; 4]> for GLContext {
     }
 }
 
+impl<'a> SetUniform<&'a [f32; 4]> for GLContext {
+    fn set_uniform(&self, location: WebGLUniformLocation, value: &[f32; 4]) {
+        self.uniform_4fv(location,value);
+    }
+}
+
+
 impl<'a> SetUniform<&'a [[f32; 3]; 3]> for GLContext {
     fn set_uniform(&self, location: WebGLUniformLocation, value:  &[[f32; 3]; 3]) {
         self.uniform_matrix_3fv(location,value);

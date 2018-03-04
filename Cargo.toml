@@ -4,7 +4,7 @@ version = "0.1.1"
 authors = ["Oussama <md.oussama@gmail.com>"]
 
 [dependencies]
-webgl = { path = "../webgl"}
+webgl = { git = "https://github.com/oussama/webgl-rs"}
 error-chain = "*"
 byteorder = "*"
 serde = "*"

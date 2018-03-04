@@ -69,9 +69,9 @@ impl VertexFormat {
     }
 
     pub fn map(&mut self,p: &Rc<ShaderProgram>) {
-        if self.mapped {
+      /*  if self.mapped {
             return;
-        }
+        }*/
         let program = &p.program; 
         let stride = self.stride();
         let mut offset = 0;
@@ -81,7 +81,7 @@ impl VertexFormat {
                 attribute.attribute.map(&program.ctx,location, stride as _, offset as _);
                 attribute.attribute.enable(&program.ctx,location);
             } else {
-                println!("Attribute not found {}",attribute.name);
+                //println!("Attribute not found {}",attribute.name);
             }
             offset += attribute.attribute.len();
         }

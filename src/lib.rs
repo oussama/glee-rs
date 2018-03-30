@@ -34,6 +34,9 @@ pub use self::vertex_attribute::*;
 pub mod vertex_format;
 pub use self::vertex_format::*;
 
+pub mod texture_resource;
+pub use self::texture_resource::*;
+
 pub use self::utils::*;
 
 pub mod parsers;

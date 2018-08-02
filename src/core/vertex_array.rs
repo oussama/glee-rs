@@ -1,5 +1,4 @@
 use webgl::*;
-use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct GLVertexArray(i32);
@@ -9,7 +8,7 @@ pub struct GLVertexArray(i32);
 /// stores list of VBO & attributes mapping
 impl GLVertexArray {
     
-    pub fn new(ctx:&GLContext) -> GLVertexArray {
+    pub fn new(_ctx:&GLContext) -> GLVertexArray {
         GLVertexArray(0)//ctx.create_vertex_array())
     }
 

@@ -1,5 +1,3 @@
-use std::ptr;
-use std::ffi::CString;
 
 use webgl::*;
 use webgl::{WebGLShader as GLShader};
@@ -156,7 +154,6 @@ fn check_gl_program_error(handle: &GLProgram, status: ShaderParameter) -> Result
     Ok(())
 }*/
 
-use core::*;
 
 #[derive(Debug)]
 pub struct ActiveInfo {

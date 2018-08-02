@@ -1,7 +1,4 @@
-use std::ffi::CString;
-use errors::*;
 
-use core::*;
 use webgl::*;
 
 

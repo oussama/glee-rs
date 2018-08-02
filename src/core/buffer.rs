@@ -1,6 +1,5 @@
 use core::*;
 use std::marker::PhantomData;
-use std::mem;
 
 use webgl::{BufferKind,DrawMode,GLContext,WebGLBuffer,Primitives};
 

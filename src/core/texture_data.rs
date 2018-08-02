@@ -1,5 +1,4 @@
 use errors::*;
-use core::*;
 
 use webgl::*;
 

@@ -65,7 +65,8 @@ impl VertexFormat {
 impl VertexFormat {
 
     pub fn stride(&self) -> usize {
-        self.attributes.iter().map(|it| it.attribute.len() ).sum()
+        let stride:usize = self.attributes.iter().map(|it| it.attribute.len() ).sum();
+        ((stride as f32 /4.0).ceil() as usize) * 4
     }
 
     pub fn map(&mut self,p: &Rc<ShaderProgram>) {

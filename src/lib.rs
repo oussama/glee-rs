@@ -13,15 +13,6 @@ extern crate serde_derive;
 
 extern crate arrayvec;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
-
-
 pub mod core;
 pub use self::core::*;
 
@@ -43,7 +34,6 @@ pub mod parsers;
 pub use self::parsers::*;
 
 pub use webgl::*;
-
 
 pub mod errors {
 
@@ -91,8 +81,6 @@ pub mod errors {
 
 }
 
-
-
 pub mod utils {
     use std::mem::size_of;
 
@@ -112,18 +100,27 @@ pub mod utils {
         }
     }
 
-
     pub trait AsBytes<'a> {
-        fn as_bytes(self) -> &'a[u8];
+        fn as_bytes(self) -> &'a [u8];
     }
 
-    impl<'a,T> AsBytes<'a> for &'a[T] {
-        fn as_bytes(self) -> &'a[u8] {
+    impl<'a, T> AsBytes<'a> for &'a [T] {
+        fn as_bytes(self) -> &'a [u8] {
             use std::slice;
             let len = size_of::<T>() * self.len();
-            unsafe {
-                slice::from_raw_parts(self.as_ptr() as _, len)
-            }
+            unsafe { slice::from_raw_parts(self.as_ptr() as _, len) }
+        }
+    }
+
+    pub trait AsMutBytes<'a> {
+        fn as_mut_bytes(self) -> &'a mut [u8];
+    }
+
+    impl<'a, T> AsMutBytes<'a> for &'a mut [T] {
+        fn as_mut_bytes(self) -> &'a mut [u8] {
+            use std::slice;
+            let len = size_of::<T>() * self.len();
+            unsafe { slice::from_raw_parts_mut(self.as_mut_ptr() as _, len) }
         }
     }
 

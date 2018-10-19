@@ -1,4 +1,3 @@
-
 //#[cfg(build = "debug")]
 /*
 pub fn check_gl_error() -> Result<()> {

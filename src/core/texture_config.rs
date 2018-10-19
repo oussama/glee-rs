@@ -1,6 +1,5 @@
 use errors::*;
-use webgl::{TextureMagFilter,TextureMinFilter,TextureWrap,GLContext,TextureParameter};
-
+use webgl::*;
 
 #[derive(Debug)]
 pub struct TextureConfig {
@@ -18,17 +17,36 @@ impl TextureConfig {
         }
     }
 
-    pub fn apply(&self,ctx:&GLContext) -> Result<()> {
-
-        ctx.tex_parameteri(TextureParameter::TextureWrapS, self.wrap.0 as _);
-        ctx.tex_parameteri(TextureParameter::TextureWrapT, self.wrap.1 as _);
+    pub fn apply(&self, ctx: &WebGl2RenderingContext) -> Result<()> {
+        ctx.tex_parameteri(
+            TextureBindPoint::Texture2d as u32,
+            TextureParameter::TextureWrapS as u32,
+            self.wrap.0 as i32,
+        );
+        ctx.tex_parameteri(
+            TextureBindPoint::Texture2d as u32,
+            TextureParameter::TextureWrapT as u32,
+            self.wrap.1 as i32,
+        );
 
         if self.wrap.0 == TextureWrap::ClampToEdge || self.wrap.1 == TextureWrap::ClampToEdge {
-            ctx.tex_parameterfv(TextureParameter::BorderColor, self.border_color.0 as _);
+            ctx.tex_parameterf(
+                TextureBindPoint::Texture2d as u32,
+                TextureParameter::BorderColor as u32,
+                self.border_color.0 as f32,
+            );
         }
-        
-        ctx.tex_parameteri(TextureParameter::TextureMinFilter, self.filtering.0 as _);
-        ctx.tex_parameteri(TextureParameter::TextureMagFilter, self.filtering.1 as _);
+
+        ctx.tex_parameteri(
+            TextureBindPoint::Texture2d as u32,
+            TextureParameter::TextureMinFilter as u32,
+            self.filtering.0 as i32,
+        );
+        ctx.tex_parameteri(
+            TextureBindPoint::Texture2d as u32,
+            TextureParameter::TextureMagFilter as u32,
+            self.filtering.1 as i32,
+        );
 
         Ok(())
     }

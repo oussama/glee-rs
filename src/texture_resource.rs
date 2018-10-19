@@ -1,5 +1,5 @@
-use webgl::GLContext;
-use core::{TextureData, TextureConfig, GLTexture};
+use core::{GLTexture, TextureConfig, TextureData};
+use webgl::WebGl2RenderingContext;
 
 use std::rc::Rc;
 
@@ -10,9 +10,12 @@ pub struct TextureResource {
     pub data: TextureData,
 }
 
-
 impl TextureResource {
-    pub fn new(ctx:&Rc<GLContext>, config: TextureConfig, data: TextureData) -> TextureResource {
+    pub fn new(
+        ctx: &Rc<WebGl2RenderingContext>,
+        config: TextureConfig,
+        mut data: TextureData,
+    ) -> TextureResource {
         let handle = GLTexture::new(ctx);
         handle.bind();
         //check_gl_error();

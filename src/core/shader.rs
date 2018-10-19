@@ -1,8 +1,7 @@
-
-use webgl::*;
-use webgl::{WebGLShader as GLShader};
-use std::rc::Rc;
 use std::ops::Deref;
+use std::rc::Rc;
+use webgl::WebGlShader as GLShader;
+use webgl::*;
 
 use errors::*;
 
@@ -19,16 +18,22 @@ pub struct GLShaderSource {
 impl GLShaderSource {
     pub fn from_bytes<T: Into<Vec<u8>>>(kind: ShaderKind, bytes: T) -> Result<GLShaderSource> {
         use std::str;
-        let data:Vec<u8> = bytes.into();
-        let source:&str = str::from_utf8(&data).chain_err(|| "failed to parse gl error to utf8")?;
-        Ok(GLShaderSource { kind, source:source.into() })
+        let data: Vec<u8> = bytes.into();
+        let source: &str =
+            str::from_utf8(&data).chain_err(|| "failed to parse gl error to utf8")?;
+        Ok(GLShaderSource {
+            kind,
+            source: source.into(),
+        })
     }
 }
 
 impl GLShaderSource {
-    pub fn compile(&self,ctx:&GLContext) -> Result<GLShader> {
+    pub fn compile(&self, ctx: &WebGl2RenderingContext) -> Result<GLShader> {
         // Create a vertex shader object
-        let shader = ctx.create_shader(self.kind);
+        let shader = ctx
+            .create_shader(self.kind as u32)
+            .expect("failed to create shader");
         // Attach vertex shader source code
         ctx.shader_source(&shader, &self.source);
         // Compile the vertex shader
@@ -38,53 +43,64 @@ impl GLShaderSource {
     }
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug)]
 pub struct GLProgram {
-    pub ctx:Rc<GLContext>,
-    handle:WebGLProgram,
+    pub ctx: Rc<WebGl2RenderingContext>,
+    handle: WebGlProgram,
 }
 
 impl Deref for GLProgram {
-    type Target = WebGLProgram;
+    type Target = WebGlProgram;
     fn deref(&self) -> &Self::Target {
         &self.handle
     }
 }
 
 impl GLProgram {
-    pub fn new<'a>(ctx:&Rc<GLContext>,shaders: &'a [&WebGLShader]) -> Result<GLProgram> {
+    pub fn new<'a>(
+        ctx: &Rc<WebGl2RenderingContext>,
+        shaders: &'a [&WebGlShader],
+    ) -> Result<GLProgram> {
         // Create a shader program object to store
         // the combined shader program
-        let shader_program = ctx.create_program();
+        let shader_program = ctx.create_program().expect("failed to create shader");
         for shader in shaders {
             // Attach a vertex shader
             ctx.attach_shader(&shader_program, *shader);
         }
         // Link both the programs
         ctx.link_program(&shader_program);
-        Ok(GLProgram{
-            ctx:ctx.clone(),
-            handle:shader_program
+        Ok(GLProgram {
+            ctx: ctx.clone(),
+            handle: shader_program,
         })
     }
 
     pub fn bind(&self) {
-        self.ctx.use_program(&self);
+        self.ctx.use_program(Some(&self));
     }
 
     pub fn attribute_location(&self, name: &str) -> Option<u32> {
-        self.ctx.get_attrib_location(&self,name)
+        let location = self.ctx.get_attrib_location(&self, name);
+        if location < 0 {
+            None
+        } else {
+            Some(location as u32)
+        }
     }
 
-    pub fn uniform_location(&self, name: &str) -> Option<WebGLUniformLocation> {
-        self.ctx.get_uniform_location(&self,name)
+    pub fn uniform_location(&self, name: &str) -> Option<WebGlUniformLocation> {
+        self.ctx.get_uniform_location(&self, name)
     }
 
     pub fn parameter(&self, pname: ShaderParameter) -> i32 {
-        self.ctx.get_program_parameter(&self,pname)
+        self.ctx
+            .get_program_parameter(&self, pname as u32)
+            .as_f64()
+            .expect("get_program_parameter") as i32
     }
 
-    pub fn active_attributes_count(&self,) -> usize {
+    pub fn active_attributes_count(&self) -> usize {
         self.parameter(ShaderParameter::ActiveAttributes) as _
     }
 
@@ -99,37 +115,44 @@ impl GLProgram {
         let mut size = 0i32;
         let mut len = 0usize;
         let mut kind = 0u32;
-
+    
         unsafe { gl::GetActiveUniform(self.0,index as _,NAME_SIZE as _,&mut (len as i32),&mut size,&mut kind,name.as_mut_ptr()) }
         let c_name = unsafe { CString::from_raw(name[0..len].as_mut_ptr())};
         ActiveInfo::new(c_name.into_string().unwrap() ,index as _,size as _,GlType::from(kind))
     }*/
 
-    pub fn uniform_at(&self, location: u32) -> WebGLActiveInfo {
-        self.ctx.get_active_uniform(&self,location)
+    pub fn uniform_at(&self, location: u32) -> Option<WebGlActiveInfo> {
+        self.ctx.get_active_uniform(&self, location)
     }
 
-    pub fn attribute_at(&self, location: u32) -> WebGLActiveInfo {
-        self.ctx.get_active_attrib(&self,location)
+    pub fn attribute_at(&self, location: u32) -> Option<WebGlActiveInfo> {
+        self.ctx.get_active_attrib(&self, location)
     }
 
-
-    pub fn attributes(&self) -> Vec<WebGLActiveInfo> {
+    pub fn attributes(&self) -> Vec<WebGlActiveInfo> {
         let count = self.active_attributes_count();
-        println!("attributes count {}",count );
+
         let mut attributes = Vec::with_capacity(count);
         for i in 0..count {
-            attributes.push(self.attribute_at(i as u32));
+            if let Some(active_info) = self.attribute_at(i as u32) {
+                attributes.push(active_info);
+            } else {
+                println!("attributes active_info not found at {}", i);
+            }
         }
         attributes
     }
 
-    pub fn uniforms(&self) -> Vec<WebGLActiveInfo> {
+    pub fn uniforms(&self) -> Vec<WebGlActiveInfo> {
         let count = self.active_uniforms_count();
-        println!("uniforms count {}",count );
+        println!("uniforms count {}", count);
         let mut uniforms = Vec::with_capacity(count);
         for i in 0..count {
-            uniforms.push(self.uniform_at(i as u32));
+            if let Some(active_info) = self.uniform_at(i as u32) {
+                uniforms.push(active_info);
+            } else {
+                println!("uniforms active_info not found at {}", i);
+            }
         }
         uniforms
     }
@@ -153,7 +176,6 @@ fn check_gl_program_error(handle: &GLProgram, status: ShaderParameter) -> Result
     }
     Ok(())
 }*/
-
 
 #[derive(Debug)]
 pub struct ActiveInfo {

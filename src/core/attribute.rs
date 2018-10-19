@@ -1,24 +1,17 @@
 use webgl::*;
 
-
-
-
-
 /// This is Vertex Attribute
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Attribute {
-    
     pub kind: DataType,
     pub normalize: bool,
     // components_count
     pub size: AttributeSize,
-    
 }
 
 /// Vertex Attribute Implementation
 impl Attribute {
-
-    pub fn len(&self) -> usize{
+    pub fn len(&self) -> usize {
         match self.kind {
             DataType::Float | DataType::I32 | DataType::U32 => 4 * self.size as usize,
             DataType::I16 | DataType::U16 => 2 * self.size as usize,
@@ -26,9 +19,9 @@ impl Attribute {
         }
     }
 
-    pub fn f32(size:AttributeSize) -> Attribute {
+    pub fn f32(size: AttributeSize) -> Attribute {
         Attribute {
-           // len: len as _,
+            // len: len as _,
             kind: DataType::Float,
             normalize: false,
             size,
@@ -37,7 +30,7 @@ impl Attribute {
 
     pub fn u16(size: AttributeSize) -> Attribute {
         Attribute {
-          //  len: len as _,
+            //  len: len as _,
             kind: DataType::U16,
             normalize: false,
             size,
@@ -69,12 +62,19 @@ impl Attribute {
     /// That means that you don't have to explicitly bind the correct
     /// VBO when the actual drawing functions are called.
     /// This also implies that you can use a different VBO for each attribute.
-    pub fn map(&self,ctx:&GLContext,  location: u32, stride: u16, offset: u16) {
-        ctx.vertex_attrib_pointer(location,self.size,self.kind,self.normalize,stride as _,offset as _);
+    pub fn map(&self, ctx: &WebGl2RenderingContext, location: u32, stride: u16, offset: u16) {
+        ctx.vertex_attrib_pointer_with_i32(
+            location,
+            self.size as i32,
+            self.kind as u32,
+            self.normalize,
+            stride as i32,
+            offset as i32,
+        );
         //ctx.log(format!("location {} stride {} offset {}", location,stride,offset ));
     }
 
-    pub fn enable(&self,ctx:&GLContext, location: u32) {
+    pub fn enable(&self, ctx: &WebGl2RenderingContext, location: u32) {
         ctx.enable_vertex_attrib_array(location);
     }
 }
